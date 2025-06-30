@@ -1,7 +1,11 @@
 import { SupabaseWalletRepository } from './database/SupabaseWalletRepository';
+import { SupabaseMarketRepository } from './database/SupabaseMarketRepository';
 import { CavosWalletProvider } from './external/CavosWalletProvider';
 import { WalletService } from '../domain/services/WalletService';
+import { MarketService } from '../domain/services/MarketService';
 import { CreateWalletUseCase } from '../application/use-cases/CreateWalletUseCase';
+import { GetMarketsUseCase } from '../application/use-cases/GetMarketsUseCase';
+import { GetMarketByIdUseCase } from '../application/use-cases/GetMarketByIdUseCase';
 import { getAppConfig } from './config/app';
 import { createSupabaseClient } from './database/supabase';
 
@@ -10,9 +14,13 @@ export class Container {
   private config: ReturnType<typeof getAppConfig>;
   private supabaseClient: any;
   private walletRepository!: SupabaseWalletRepository;
+  private marketRepository!: SupabaseMarketRepository;
   private cavosWalletProvider!: CavosWalletProvider;
   private walletService!: WalletService;
+  private marketService!: MarketService;
   private createWalletUseCase!: CreateWalletUseCase;
+  private getMarketsUseCase!: GetMarketsUseCase;
+  private getMarketByIdUseCase!: GetMarketByIdUseCase;
 
   private constructor() {
     try {
@@ -50,15 +58,19 @@ export class Container {
     
     // Repositories
     this.walletRepository = new SupabaseWalletRepository(this.supabaseClient);
+    this.marketRepository = new SupabaseMarketRepository(this.supabaseClient);
     
     // External providers
     this.cavosWalletProvider = new CavosWalletProvider(this.config.cavosApiKey);
     
     // Domain services
     this.walletService = new WalletService(this.walletRepository, this.cavosWalletProvider);
+    this.marketService = new MarketService(this.marketRepository);
     
     // Use cases
     this.createWalletUseCase = new CreateWalletUseCase(this.walletService);
+    this.getMarketsUseCase = new GetMarketsUseCase(this.marketService);
+    this.getMarketByIdUseCase = new GetMarketByIdUseCase(this.marketService);
     
     console.log('🎉 All dependencies initialized successfully');
   }
@@ -73,5 +85,13 @@ export class Container {
 
   public getWalletService(): WalletService {
     return this.walletService;
+  }
+
+  public getGetMarketsUseCase(): GetMarketsUseCase {
+    return this.getMarketsUseCase;
+  }
+
+  public getGetMarketByIdUseCase(): GetMarketByIdUseCase {
+    return this.getMarketByIdUseCase;
   }
 } 

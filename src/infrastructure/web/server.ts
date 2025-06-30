@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import morgan from 'morgan';
 import { ApiResponse } from '../../shared/types/ApiResponse';
 import walletRoutes from './routes/walletRoutes';
+import marketRoutes from './routes/marketRoutes';
 
 export function createServer(): Express {
   const app: Express = express();
@@ -36,6 +37,7 @@ export function createServer(): Express {
 
   // API routes with v1/api prefix
   app.use('/v1/api/wallets', walletRoutes);
+  app.use('/v1/api/markets', marketRoutes);
 
   // Error handling
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
