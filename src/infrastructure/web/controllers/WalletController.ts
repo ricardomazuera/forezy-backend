@@ -2,6 +2,40 @@ import { Request, Response } from 'express';
 import { CreateWalletUseCase } from '../../../application/use-cases/CreateWalletUseCase';
 import { CreateWalletRequestDto, CreateWalletResponseDto, WalletErrorResponseDto } from '../../../application/dto/WalletDto';
 
+/**
+ * @swagger
+ * /v1/api/wallets/create:
+ *   post:
+ *     summary: Create a new wallet
+ *     description: Creates a new wallet for a user.
+ *     tags:
+ *       - Wallets
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CreateWalletRequestDto'
+ *     responses:
+ *       200:
+ *         description: Wallet created successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CreateWalletResponseDto'
+ *       400:
+ *         description: Missing required fields
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/WalletErrorResponseDto'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/WalletErrorResponseDto'
+ */
 export class WalletController {
   constructor(private createWalletUseCase: CreateWalletUseCase) {}
 

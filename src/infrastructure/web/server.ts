@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import { ApiResponse } from '../../shared/types/ApiResponse';
 import walletRoutes from './routes/walletRoutes';
 import marketRoutes from './routes/marketRoutes';
+// Swagger imports
+import swaggerUi from 'swagger-ui-express';
+import swaggerSpec from './swagger';
 
 export function createServer(): Express {
   const app: Express = express();
@@ -15,6 +18,9 @@ export function createServer(): Express {
   app.use(morgan('combined'));
   app.use(express.json());
   app.use(express.urlencoded({ extended: true }));
+
+  // Swagger docs
+  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
   // Basic routes
   app.get('/', (_req: Request, res: Response) => {
@@ -27,6 +33,29 @@ export function createServer(): Express {
     res.json(response);
   });
 
+  /**
+   * @swagger
+   * /health:
+   *   get:
+   *     summary: Health check
+   *     description: Returns the status of the API.
+   *     tags:
+   *       - Health
+   *     responses:
+   *       200:
+   *         description: API is healthy
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 status:
+   *                   type: string
+   *                   example: OK
+   *                 timestamp:
+   *                   type: string
+   *                   format: date-time
+   */
   app.get('/health', (_req: Request, res: Response) => {
     const response: ApiResponse = {
       status: 'OK',
