@@ -11,6 +11,28 @@ import {
 import { MarketFilters } from '../../../domain/entities/Market';
 import { NotFoundError } from '../../../shared/errors/DomainError';
 
+/**
+ * @swagger
+ * /v1/api/markets:
+ *   get:
+ *     summary: Get a list of markets
+ *     description: Returns a list of markets with optional filters.
+ *     tags:
+ *       - Markets
+ *     responses:
+ *       200:
+ *         description: List of markets
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MarketListResponseDto'
+ *       500:
+ *         description: Internal server error
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MarketErrorResponseDto'
+ */
 export class MarketController {
   constructor(
     private getMarketsUseCase: GetMarketsUseCase,
@@ -70,6 +92,47 @@ export class MarketController {
     }
   }
 
+  /**
+   * @swagger
+   * /v1/api/markets/{market_id}:
+   *   get:
+   *     summary: Get market by ID
+   *     description: Returns a market by its ID.
+   *     tags:
+   *       - Markets
+   *     parameters:
+   *       - in: path
+   *         name: market_id
+   *         required: true
+   *         schema:
+   *           type: string
+   *         description: The market ID
+   *     responses:
+   *       200:
+   *         description: Market found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/MarketResponseDto'
+   *       400:
+   *         description: Market ID is required
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/MarketErrorResponseDto'
+   *       404:
+   *         description: Market not found
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/MarketErrorResponseDto'
+   *       500:
+   *         description: Internal server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/MarketErrorResponseDto'
+   */
   async getMarketById(req: Request, res: Response): Promise<void> {
     try {
       const { market_id } = req.params;
