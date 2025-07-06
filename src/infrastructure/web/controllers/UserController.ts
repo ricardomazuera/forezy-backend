@@ -11,7 +11,7 @@ const userRepository = container.getSupabaseUserRepository();
 const betRepository = container.getBetRepository();
 
 function isValidStarknetAddress(address: string): boolean {
-  return /^0x[a-fA-F0-9]{63}$/.test(address);
+  return /^0x[a-fA-F0-9]{64}$/.test(address);
 }
 export class UserController {
   constructor(
