@@ -3,8 +3,16 @@ import { RegisterUserUseCase } from '../../../application/use-cases/RegisterUser
 import { RegisterUserRequestDto, RegisterUserResponseDto, RegisterUserErrorResponseDto } from '../../../application/dto/UserDto';
 import { LoginUserUseCase } from '../../../application/use-cases/LoginUserUseCase';
 import { LoginUserRequestDto } from '../../../application/dto/UserDto';
+import { Container } from '../../../infrastructure/container';
+import { getStrkBalance } from '../../../infrastructure/external/starknetBalance';
 
+const container = Container.getInstance();
+const userRepository = container.getSupabaseUserRepository();
+const betRepository = container.getBetRepository();
 
+function isValidStarknetAddress(address: string): boolean {
+  return /^0x[a-fA-F0-9]{63}$/.test(address);
+}
 export class UserController {
   constructor(
     private registerUserUseCase: RegisterUserUseCase,
@@ -204,4 +212,156 @@ export class UserController {
       });
     }
   }
-} 
+}
+
+/**
+ * @swagger
+ * /v1/api/users/{address}/balance:
+ *   get:
+ *     summary: Get user balance
+ *     description: Retrieves the on-chain balance for a given Starknet wallet address
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         description: Starknet wallet address of the user
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Balance retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 address:
+ *                   type: string
+ *                 balance:
+ *                   type: number
+ *                   nullable: true
+ *                 message:
+ *                   type: string
+ *       400:
+ *         description: Invalid address format
+ *       500:
+ *         description: Internal server error
+ */
+export const getUserBalance = async (req: Request, res: Response) => {
+  const { address } = req.params;
+  if (!address || !isValidStarknetAddress(address)) {
+    return res.status(400).json({ error: 'Invalid address format' });
+  }
+  try {
+    const balance = await getStrkBalance(address);
+    return res.json({ address, balance, token: 'STRK' });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Error fetching on-chain balance', message: err.message });
+  }
+};
+
+/**
+ * @swagger
+ * /v1/api/users/{address}/shares:
+ *   get:
+ *     summary: Get user shares for different markets
+ *     description: Retrieves all shares owned by a user across different prediction markets
+ *     tags:
+ *       - Users
+ *     parameters:
+ *       - in: path
+ *         name: address
+ *         required: true
+ *         description: Starknet wallet address of the user
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: page
+ *         required: false
+ *         description: Page number (default 1)
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of items per page (default 20)
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *     responses:
+ *       200:
+ *         description: List of user shares retrieved successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 address:
+ *                   type: string
+ *                 shares:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       market_id:
+ *                         type: string
+ *                       outcome:
+ *                         type: string
+ *                       shares:
+ *                         type: number
+ *                 pagination:
+ *                   type: object
+ *                   properties:
+ *                     page:
+ *                       type: integer
+ *                     limit:
+ *                       type: integer
+ *                     total:
+ *                       type: integer
+ *                     hasMore:
+ *                       type: boolean
+ *       400:
+ *         description: Invalid address format
+ *       404:
+ *         description: User not found
+ *       500:
+ *         description: Internal server error
+ */
+export const getUserShares = async (req: Request, res: Response) => {
+  const { address } = req.params;
+  const page = parseInt(req.query['page'] as string) || 1;
+  const limit = parseInt(req.query['limit'] as string) || 20;
+  const offset = (page - 1) * limit;
+  if (!address || !isValidStarknetAddress(address)) {
+    return res.status(400).json({ error: 'Invalid address format' });
+  }
+  try {
+    const user = await userRepository.findByAddress(address);
+    if (!user || !user.id) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    const { data: shares, total } = await betRepository.findSharesByUserId(user.id, limit, offset);
+    // Formatear respuesta
+    const formatted = shares.map((s: any) => ({
+      market_id: s.market_id,
+      outcome: s.selected_option,
+      shares: s.amount
+    }));
+    return res.json({
+      address,
+      shares: formatted,
+      pagination: {
+        page,
+        limit,
+        total,
+        hasMore: offset + formatted.length < total
+      }
+    });
+  } catch (err: any) {
+    return res.status(500).json({ error: 'Internal server error', message: err.message });
+  }
+}; 

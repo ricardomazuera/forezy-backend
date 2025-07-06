@@ -51,6 +51,31 @@ export class SupabaseUserRepository implements UserRepository {
       ...(data.created_at && { createdAt: new Date(data.created_at) })
     };
   }
+
+  async findByAddress(address: string): Promise<User | null> {
+    const { data, error } = await this.supabase
+      .from('users')
+      .select('*')
+      .eq('address', address)
+      .maybeSingle();
+
+    if (error) {
+      throw new Error(`Error fetching wallet by address: ${error.message}`);
+    }
+
+    if (!data) {
+      return null;
+    }
+
+    return {
+      id: data.id,
+      authUid: data.auth_uid,
+      publicKey: data.public_key,
+      encryptedPrivateKey: data.encripted_private_key,
+      address: data.address,
+      ...(data.created_at && { createdAt: new Date(data.created_at) })
+    };
+  }
 }
 
 export * from './SupabaseUserRepository';
