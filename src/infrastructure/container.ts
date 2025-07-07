@@ -1,9 +1,8 @@
-import { SupabaseWalletRepository } from './database/SupabaseWalletRepository';
+import { SupabaseUserRepository } from '../infrastructure/database/SupabaseUserRepository';
 import { SupabaseMarketRepository } from './database/SupabaseMarketRepository';
 import { CavosWalletProvider } from './external/CavosWalletProvider';
-import { WalletService } from '../domain/services/WalletService';
 import { MarketService } from '../domain/services/MarketService';
-import { CreateWalletUseCase } from '../application/use-cases/CreateWalletUseCase';
+import { RegisterUserUseCase } from '../application/use-cases/RegisterUserUseCase';
 import { GetMarketsUseCase } from '../application/use-cases/GetMarketsUseCase';
 import { GetMarketByIdUseCase } from '../application/use-cases/GetMarketByIdUseCase';
 import { getAppConfig } from './config/app';
@@ -12,13 +11,12 @@ import { createSupabaseClient } from './database/supabase';
 export class Container {
   private static instance: Container;
   private config: ReturnType<typeof getAppConfig>;
-  private supabaseClient: any;
-  private walletRepository!: SupabaseWalletRepository;
+    private supabaseClient: any;
+  private userRepository!: SupabaseUserRepository;
   private marketRepository!: SupabaseMarketRepository;
   private cavosWalletProvider!: CavosWalletProvider;
-  private walletService!: WalletService;
   private marketService!: MarketService;
-  private createWalletUseCase!: CreateWalletUseCase;
+  private registerUserUseCase!: RegisterUserUseCase;
   private getMarketsUseCase!: GetMarketsUseCase;
   private getMarketByIdUseCase!: GetMarketByIdUseCase;
 
@@ -44,34 +42,22 @@ export class Container {
     if (!this.config.supabaseUrl || !this.config.supabaseKey) {
       throw new Error('Supabase configuration is missing');
     }
-    
     if (!this.config.cavosApiKey) {
       throw new Error('CAVOS_API_KEY is missing');
     }
+
   }
 
   private initializeDependencies(): void {
     console.log('🔧 Initializing dependencies...');
-    
-    // Infrastructure - Supabase connection
     this.supabaseClient = createSupabaseClient(this.config.supabaseUrl, this.config.supabaseKey);
-    
-    // Repositories
-    this.walletRepository = new SupabaseWalletRepository(this.supabaseClient);
+    this.userRepository = new SupabaseUserRepository(this.supabaseClient);
     this.marketRepository = new SupabaseMarketRepository(this.supabaseClient);
-    
-    // External providers
     this.cavosWalletProvider = new CavosWalletProvider(this.config.cavosApiKey);
-    
-    // Domain services
-    this.walletService = new WalletService(this.walletRepository, this.cavosWalletProvider);
     this.marketService = new MarketService(this.marketRepository);
-    
-    // Use cases
-    this.createWalletUseCase = new CreateWalletUseCase(this.walletService);
+    this.registerUserUseCase = new RegisterUserUseCase(this.cavosWalletProvider, this.userRepository);
     this.getMarketsUseCase = new GetMarketsUseCase(this.marketService);
     this.getMarketByIdUseCase = new GetMarketByIdUseCase(this.marketService);
-    
     console.log('🎉 All dependencies initialized successfully');
   }
 
@@ -79,12 +65,8 @@ export class Container {
     return this.config;
   }
 
-  public getCreateWalletUseCase(): CreateWalletUseCase {
-    return this.createWalletUseCase;
-  }
-
-  public getWalletService(): WalletService {
-    return this.walletService;
+  public getRegisterUserUseCase(): RegisterUserUseCase {
+    return this.registerUserUseCase;
   }
 
   public getGetMarketsUseCase(): GetMarketsUseCase {

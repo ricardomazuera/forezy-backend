@@ -66,7 +66,7 @@ const swaggerDefinition = {
           address: { type: 'string' }
         }
       },
-      WalletErrorResponseDto: {
+      RegisterUserErrorResponseDto: {
         type: 'object',
         properties: {
           error: { type: 'string' },

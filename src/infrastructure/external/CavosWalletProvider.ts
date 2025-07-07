@@ -1,19 +1,36 @@
-import { deployWallet } from 'cavos-service-sdk';
-import { ExternalWalletProvider } from '../../domain/services/WalletService';
+import { CavosAuth } from 'cavos-service-sdk';
 
-export class CavosWalletProvider implements ExternalWalletProvider {
-  constructor(private apiKey: string) {}
+export class CavosWalletProvider {
+  constructor(private orgSecret: string) {}
 
-  async createWallet(network: string): Promise<{
-    publicKey: string;
-    privateKey: string;
-    address: string;
+  async registerUser(email: string, password: string, network: string): Promise<{
+    userId: string;
+    email: string;
+    wallet: {
+      address: string;
+      network: string;
+      transactionHash: string;
+      publicKey: string;
+      privateKey: string;
+    };
   }> {
-    const wallet = await deployWallet(network, this.apiKey);
+    const userData = await CavosAuth.signUp(
+      email,
+      password,
+      this.orgSecret,
+      network
+    );
     return {
-      publicKey: wallet.public_key, 
-      privateKey: wallet.private_key, 
-      address: wallet.address
+      userId: userData.data.user_id,
+      email: userData.data.email,
+      wallet: {
+        address: userData.data.wallet.address,
+        network: userData.data.wallet.network,
+        transactionHash: userData.data.wallet.transaction_hash,
+        publicKey: userData.data.wallet.public_key,
+        privateKey: userData.data.wallet.private_key
+      }
     };
   }
+
 } 
