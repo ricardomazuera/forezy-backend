@@ -33,4 +33,30 @@ export class CavosWalletProvider {
     };
   }
 
+  async loginUser(email: string, password: string): Promise<{
+    userId: string;
+    email: string;
+    accessToken: string;
+    wallet: {
+      address: string;
+      network: string;
+    };
+  }> {
+
+    const authData = await CavosAuth.signIn(
+      email,
+      password,
+      this.orgSecret
+    );
+    return {
+      userId: authData.data.user_id,
+      email: authData.data.email,
+      accessToken: authData.data.access_token,
+      wallet: {
+        address: authData.data.wallet.address,
+        network: authData.data.wallet.network
+      }
+    };
+  }
+
 } 

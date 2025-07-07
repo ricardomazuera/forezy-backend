@@ -1,14 +1,15 @@
 import { SupabaseClient } from '@supabase/supabase-js';
 import { User } from '../../domain/entities/User';
+import { UserRepository } from '../../domain/repositories/UserRepository';
 
-export class SupabaseUserRepository {
+export class SupabaseUserRepository implements UserRepository {
   constructor(private supabase: SupabaseClient) {}
 
-  async findByUserId(email: string): Promise<User | null> {
+  async findByUserId(userId: string): Promise<User | null> {
     const { data, error } = await this.supabase
       .from('users')
       .select('*')
-      .eq('email', email)
+      .eq('user_id_cavos', userId)
       .maybeSingle();
 
     if (error) {
@@ -21,6 +22,7 @@ export class SupabaseUserRepository {
 
     return {
       id: data.id,
+      userId: data.user_id_cavos,
       email: data.email,
       address: data.address,
       ...(data.created_at && { createdAt: new Date(data.created_at) })

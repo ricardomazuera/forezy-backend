@@ -19,6 +19,7 @@ export class Container {
   private registerUserUseCase!: RegisterUserUseCase;
   private getMarketsUseCase!: GetMarketsUseCase;
   private getMarketByIdUseCase!: GetMarketByIdUseCase;
+  private loginUserUseCase!: import('../application/use-cases/LoginUserUseCase').LoginUserUseCase;
 
   private constructor() {
     try {
@@ -58,6 +59,7 @@ export class Container {
     this.registerUserUseCase = new RegisterUserUseCase(this.cavosWalletProvider, this.userRepository);
     this.getMarketsUseCase = new GetMarketsUseCase(this.marketService);
     this.getMarketByIdUseCase = new GetMarketByIdUseCase(this.marketService);
+    this.loginUserUseCase = new (require('../application/use-cases/LoginUserUseCase').LoginUserUseCase)(this.cavosWalletProvider, this.userRepository);
     console.log('🎉 All dependencies initialized successfully');
   }
 
@@ -75,5 +77,13 @@ export class Container {
 
   public getGetMarketByIdUseCase(): GetMarketByIdUseCase {
     return this.getMarketByIdUseCase;
+  }
+
+  public getCavosWalletProvider(): CavosWalletProvider {
+    return this.cavosWalletProvider;
+  }
+
+  public getLoginUserUseCase(): import('../application/use-cases/LoginUserUseCase').LoginUserUseCase {
+    return this.loginUserUseCase;
   }
 } 
