@@ -95,4 +95,14 @@ export function createServer(): Express {
   });
 
   return app;
+}
+
+const app = createServer();
+export { app };
+
+if (require.main === module) {
+  const PORT = process.env['PORT'] || 3000;
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
 } 
