@@ -3,7 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import { ApiResponse } from '../../shared/types/ApiResponse';
-import walletRoutes from './routes/walletRoutes';
+import userRoutes from './routes/userRoutes';
 import marketRoutes from './routes/marketRoutes';
 // Swagger imports
 import swaggerUi from 'swagger-ui-express';
@@ -71,7 +71,7 @@ export function createServer(): Express {
   });
 
   // API routes with v1/api prefix
-  app.use('/v1/api/wallets', walletRoutes);
+  app.use('/v1/api/users', userRoutes);
   app.use('/v1/api/markets', marketRoutes);
 
   // Error handling
