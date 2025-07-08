@@ -10,7 +10,11 @@ const swaggerDefinition = {
   servers: [
     {
       url: 'http://localhost:3000',
-      description: 'Servidor local',
+      description: 'Local server',
+    },
+    {
+      url: 'https://forezy-backend.vercel.app/',
+      description: 'Production server (Vercel)',
     },
   ],
   components: {

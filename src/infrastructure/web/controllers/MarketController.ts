@@ -16,16 +16,78 @@ import { NotFoundError } from '../../../shared/errors/DomainError';
  * /v1/api/markets:
  *   get:
  *     summary: Get a list of markets
- *     description: Returns a list of markets with optional filters.
+ *     description: Returns a list of markets with optional filters and pagination.
  *     tags:
  *       - Markets
+ *     parameters:
+ *       - in: query
+ *         name: status
+ *         required: false
+ *         description: Filter by market status (open, closed, resolved, challenged)
+ *         schema:
+ *           type: string
+ *           enum: [open, closed, resolved, challenged]
+ *       - in: query
+ *         name: creatorId
+ *         required: false
+ *         description: Filter by creator user ID
+ *         schema:
+ *           type: string
+ *       - in: query
+ *         name: limit
+ *         required: false
+ *         description: Number of items per page (default 20)
+ *         schema:
+ *           type: integer
+ *           minimum: 1
+ *           maximum: 100
+ *       - in: query
+ *         name: offset
+ *         required: false
+ *         description: Offset for pagination (default 0)
+ *         schema:
+ *           type: integer
+ *           minimum: 0
+ *       - in: query
+ *         name: sortBy
+ *         required: false
+ *         description: Sort by field (createTms, resolutionTime)
+ *         schema:
+ *           type: string
+ *           enum: [createTms, resolutionTime]
+ *       - in: query
+ *         name: sortOrder
+ *         required: false
+ *         description: Sort order (asc, desc)
+ *         schema:
+ *           type: string
+ *           enum: [asc, desc]
  *     responses:
  *       200:
  *         description: List of markets
  *         content:
  *           application/json:
  *             schema:
- *               $ref: '#/components/schemas/MarketListResponseDto'
+ *               type: object
+ *               properties:
+ *                 markets:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MarketResponseDto'
+ *                 total:
+ *                   type: integer
+ *                 limit:
+ *                   type: integer
+ *                 offset:
+ *                   type: integer
+ *                 hasMore:
+ *                   type: boolean
+ *       400:
+ *         description: Invalid status value
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MarketErrorResponseDto'
  *       500:
  *         description: Internal server error
  *         content:
@@ -43,9 +105,14 @@ export class MarketController {
     try {
       // Parse query parameters
       const filters: MarketFilters = {};
-      
+      const validStatuses = ['open', 'closed', 'resolved', 'challenged'];
       if (req.query['status']) {
-        filters['status'] = req.query['status'] as string;
+        const status = req.query['status'] as string;
+        if (!validStatuses.includes(status)) {
+          res.status(400).json({ error: 'Invalid status value', message: `Valid values: ${validStatuses.join(', ')}` });
+          return;
+        }
+        filters['status'] = status;
       }
       
       if (req.query['creatorId']) {

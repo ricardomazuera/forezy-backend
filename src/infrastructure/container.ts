@@ -7,6 +7,8 @@ import { GetMarketsUseCase } from '../application/use-cases/GetMarketsUseCase';
 import { GetMarketByIdUseCase } from '../application/use-cases/GetMarketByIdUseCase';
 import { getAppConfig } from './config/app';
 import { createSupabaseClient } from './database/supabase';
+import { SupabaseBetRepository } from './database/SupabaseBetRepository';
+import { LoginUserUseCase } from '../application/use-cases/LoginUserUseCase';
 
 export class Container {
   private static instance: Container;
@@ -19,6 +21,7 @@ export class Container {
   private registerUserUseCase!: RegisterUserUseCase;
   private getMarketsUseCase!: GetMarketsUseCase;
   private getMarketByIdUseCase!: GetMarketByIdUseCase;
+  private betRepository!: SupabaseBetRepository;
   private loginUserUseCase!: import('../application/use-cases/LoginUserUseCase').LoginUserUseCase;
 
   private constructor() {
@@ -54,6 +57,7 @@ export class Container {
     this.supabaseClient = createSupabaseClient(this.config.supabaseUrl, this.config.supabaseKey);
     this.userRepository = new SupabaseUserRepository(this.supabaseClient);
     this.marketRepository = new SupabaseMarketRepository(this.supabaseClient);
+    this.betRepository = new SupabaseBetRepository(this.supabaseClient);
     this.cavosWalletProvider = new CavosWalletProvider(this.config.cavosApiKey);
     this.marketService = new MarketService(this.marketRepository);
     this.registerUserUseCase = new RegisterUserUseCase(this.cavosWalletProvider, this.userRepository);
@@ -83,7 +87,15 @@ export class Container {
     return this.cavosWalletProvider;
   }
 
-  public getLoginUserUseCase(): import('../application/use-cases/LoginUserUseCase').LoginUserUseCase {
+  public getLoginUserUseCase(): LoginUserUseCase {
     return this.loginUserUseCase;
+  }
+
+  public getBetRepository(): SupabaseBetRepository {
+    return this.betRepository;
+  }
+
+  public getSupabaseUserRepository(): SupabaseUserRepository {
+    return this.userRepository;
   }
 } 

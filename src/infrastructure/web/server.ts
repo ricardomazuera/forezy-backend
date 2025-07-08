@@ -73,6 +73,7 @@ export function createServer(): Express {
   // API routes with v1/api prefix
   app.use('/v1/api/users', userRoutes);
   app.use('/v1/api/markets', marketRoutes);
+  app.use('/v1/api/users', userRoutes);
 
   // Error handling
   app.use((err: Error, _req: Request, res: Response, _next: NextFunction) => {
