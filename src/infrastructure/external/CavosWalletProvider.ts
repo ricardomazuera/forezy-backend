@@ -59,4 +59,7 @@ export class CavosWalletProvider {
     };
   }
 
+  async deleteUser(userId: string): Promise<any> {
+    return await CavosAuth.deleteUser(userId, this.orgSecret);
+  }
 } 
