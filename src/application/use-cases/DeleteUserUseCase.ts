@@ -5,14 +5,15 @@ export class DeleteUserUseCase {
   constructor(
     private cavosWalletProvider: CavosWalletProvider,
     private userRepository: UserRepository
-  ) {}
+  ) { }
 
   async execute(id: string, userId: string): Promise<{ message: string }> {
-    console.log('Deleting user', id, userId);
-    const cavosResult = await this.cavosWalletProvider.deleteUser(userId);
-    console.log('Cavos result', cavosResult);
-    await this.userRepository.deleteUserById(id);
-    console.log('User deleted from database');
+    try {
+      await this.userRepository.deleteUserById(id);
+      await this.cavosWalletProvider.deleteUser(userId);
+    } catch (error) {
+      throw error;
+    }
     return {
       message: 'User deleted from Forezy',
     };

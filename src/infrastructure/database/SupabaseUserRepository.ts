@@ -3,7 +3,7 @@ import { User } from '../../domain/entities/User';
 import { UserRepository } from '../../domain/repositories/UserRepository';
 
 export class SupabaseUserRepository implements UserRepository {
-  constructor(private supabase: SupabaseClient) {}
+  constructor(private supabase: SupabaseClient) { }
 
   async findByUserId(userId: string): Promise<User | null> {
     const { data, error } = await this.supabase
@@ -79,6 +79,9 @@ export class SupabaseUserRepository implements UserRepository {
   }
 
   async deleteUserById(id: string): Promise<void> {
+    if (!id || id.trim() === '') {
+      throw new Error('User ID is required for deletion');
+    }
     const { error } = await this.supabase
       .from('users')
       .delete()
